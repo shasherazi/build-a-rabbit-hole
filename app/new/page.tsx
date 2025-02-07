@@ -12,9 +12,15 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase/client";
+import { User } from "@/types";
+import { LoaderCircle } from "lucide-react";
 
 export default function NewRabbitHole() {
   const router = useRouter();
+  const supabase = createClient();
+  const [user, setUser] = useState<User | null>(null);
 
   const formSchema = z.object({
     name: z.string().min(1).max(100),
@@ -27,13 +33,38 @@ export default function NewRabbitHole() {
     },
   });
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/error");
+        return;
+      }
+
+      const formattedUser = {
+        id: user?.id,
+        name: user?.user_metadata?.full_name,
+        avatarUrl: user?.user_metadata?.avatar_url,
+      };
+
+      setUser(formattedUser);
+    };
+
+    fetchUser();
+  }, []);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+    const body = {
+      ...values,
+      userId: user?.id,
+    };
+
     await fetch("/api/rabbitholes", {
       method: "POST",
-      body: JSON.stringify(values),
+      body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
       },
@@ -43,29 +74,43 @@ export default function NewRabbitHole() {
   }
 
   return (
-    <div>
-      <h1>hi</h1>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>RabbitHole name</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="The Psychology of Conspiracy Theories"
-                    autoComplete="off"
-                    {...field}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <Button type="submit">Create rabbit hole</Button>
-        </form>
-      </Form>
+    <div className="flex items-center justify-center min-h-screen p-4 mt-[-64px]">
+      <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-6 space-y-6">
+        <h2 className="text-xl font-semibold text-center">
+          Create a New Rabbit Hole
+        </h2>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>RabbitHole Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="The Psychology of Conspiracy Theories"
+                      autoComplete="off"
+                      {...field}
+                      className="w-full"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full">
+              {form.formState.isSubmitting ? (
+                <>
+                  Creating Rabbit Hole
+                  <LoaderCircle className="animate-spin ml-2" />
+                </>
+              ) : (
+                "Create Rabbit Hole"
+              )}
+            </Button>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 }

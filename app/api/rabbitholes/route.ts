@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
+import { v4 as uuidv4 } from "uuid";
 import data from "../../../data/rabbitholes.json";
 
 export async function GET() {
-  console.log("GET /api/rabbitholes called");
   return NextResponse.json(data);
 }
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const id = Date.now().toString();
+  const id = uuidv4();
   const rabbitHoles = JSON.parse(JSON.stringify(data));
   rabbitHoles.push({ id, ...body });
 
