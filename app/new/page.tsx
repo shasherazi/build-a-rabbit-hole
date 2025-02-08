@@ -40,7 +40,7 @@ export default function NewRabbitHole() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        router.push("/error");
+        router.push("/login");
         return;
       }
 

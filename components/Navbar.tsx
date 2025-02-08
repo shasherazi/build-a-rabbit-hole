@@ -16,6 +16,7 @@ import { signout } from "@/lib/action";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const supabase = createClient();
   const [userProfilePicture, setUserProfilePicture] = useState("/user.svg");
 
@@ -25,27 +26,33 @@ const Navbar = () => {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (user?.user_metadata?.avatar_url) {
-        setUserProfilePicture(user.user_metadata.avatar_url);
+      if (user) {
+        setIsLoggedIn(true);
+        if (user.user_metadata?.avatar_url) {
+          setUserProfilePicture(user.user_metadata.avatar_url);
+        }
+      } else {
+        setIsLoggedIn(false);
+        setUserProfilePicture("/user.svg");
       }
     };
 
     fetchUser();
 
-    // Set up auth state change listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
+        setIsLoggedIn(true);
         if (session.user.user_metadata?.avatar_url) {
           setUserProfilePicture(session.user.user_metadata.avatar_url);
         }
       } else {
+        setIsLoggedIn(false);
         setUserProfilePicture("/user.svg");
       }
     });
 
-    // Cleanup subscription on unmount
     return () => {
       subscription.unsubscribe();
     };
@@ -69,31 +76,41 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            <Link href="/rabbitholes" className="ml-4">
-              <Button>See your rabbitholes</Button>
-            </Link>
-
-            <div className="flex items-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 rounded-full">
-                    <Image
-                      src={userProfilePicture}
-                      alt="User profile"
-                      width={32}
-                      height={32}
-                      className="h-8 w-8 rounded-full"
-                      priority
-                    />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => signout()}>
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            {isLoggedIn ? (
+              <>
+                <Link href="/rabbitholes" className="ml-4">
+                  <Button>See your rabbitholes</Button>
+                </Link>
+                <div className="flex items-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="relative h-8 rounded-full"
+                      >
+                        <Image
+                          src={userProfilePicture}
+                          alt="User profile"
+                          width={32}
+                          height={32}
+                          className="h-8 w-8 rounded-full"
+                          priority
+                        />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => signout()}>
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </>
+            ) : (
+              <Link href="/login" className="ml-4">
+                <Button>Login</Button>
+              </Link>
+            )}
           </div>
 
           <div className="flex items-center sm:hidden">
@@ -115,32 +132,43 @@ const Navbar = () => {
       {isOpen && (
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="w-full">
-                <div className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-                  <Image
-                    src={userProfilePicture}
-                    alt="User profile"
-                    width={32}
-                    height={32}
-                    className="h-8 w-8 rounded-full mr-2"
-                    priority
-                  />
-                  <span>User Profile</span>
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => signout()}>
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Link
-              href="/rabbitholes"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-            >
-              See your rabbitholes
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="w-full">
+                    <div className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+                      <Image
+                        src={userProfilePicture}
+                        alt="User profile"
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 rounded-full mr-2"
+                        priority
+                      />
+                      <span>User Profile</span>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => signout()}>
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Link
+                  href="/rabbitholes"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                >
+                  See your rabbitholes
+                </Link>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+              >
+                Login
+              </Link>
+            )}
           </div>
         </div>
       )}
