@@ -59,6 +59,7 @@ export default function NewRabbitHole() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const body = {
       ...values,
+      userName: user?.name,
       userId: user?.id,
     };
 

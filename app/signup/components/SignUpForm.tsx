@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signup } from "@/lib/action";
+import SignInWithGoogleButton from "@/app/login/components/SignInWithGoogle";
 
 export function SignUpForm() {
   return (
@@ -50,6 +51,7 @@ export function SignUpForm() {
             <Button formAction={signup} type="submit" className="w-full">
               Create an account
             </Button>
+            <SignInWithGoogleButton />
           </div>
         </form>
         <div className="mt-4 text-center text-sm">

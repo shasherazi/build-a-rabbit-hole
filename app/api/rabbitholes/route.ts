@@ -1,25 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import { v4 as uuidv4 } from "uuid";
-import data from "../../../data/rabbitholes.json";
+import { createClient } from "@/utils/supabase/server";
 
 export async function GET() {
-  return NextResponse.json(data);
+  const supabase = await createClient();
+  const { data: rabbitHoles, error } = await supabase.from("rabbitHoles").select("*")
+
+  if (error) {
+    return NextResponse.json({ error }, { status: 500 })
+  }
+
+  return NextResponse.json(rabbitHoles);
 }
 
 export async function POST(req: NextRequest) {
+  const supabase = await createClient();
   const body = await req.json();
-  const id = uuidv4();
-  const rabbitHoles = JSON.parse(JSON.stringify(data));
-  rabbitHoles.push({ id, ...body });
 
-  fs.writeFileSync("data/rabbitholes.json", JSON.stringify(rabbitHoles, null, 2));
-  const url = req.nextUrl.clone();
-  url.pathname = `/rabbitholes/${id}`;
+  const { data: rabbitHoles, error } = await supabase.from("rabbitHoles").insert({
+    name: body.name,
+    user_name: body.userName,
+    user_id: body.userId,
+  }).single();
 
-  return NextResponse.json({ id, ...body },
-    {
-      status: 201,
-      headers: { Location: url.toString() }
-    });
+  if (error) {
+    return NextResponse.json({ error }, { status: 500 });
+  }
+
+  return NextResponse.json(rabbitHoles, { status: 201 });
+}
+
+export async function PATCH(req: NextRequest) {
+  const supabase = await createClient();
+  const body = await req.json();
+  const { id, summary } = body;
+  console.log(id, summary)
+  const { data: rabbitHoles, error } = await supabase.from("rabbitHoles")
+    .update({ summary }).eq("id", id).single();
+
+  if (error) {
+    return NextResponse.json({ error }, { status: 500 });
+  }
+
+  return NextResponse.json(rabbitHoles);
 }

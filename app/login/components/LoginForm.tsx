@@ -53,9 +53,7 @@ export function LoginForm({
               <Button type="submit" formAction={login} className="w-full">
                 Login
               </Button>
-              <Button variant="outline" type="button" className="w-full">
-                <SignInWithGoogle />
-              </Button>
+              <SignInWithGoogle />
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}

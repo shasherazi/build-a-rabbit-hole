@@ -7,7 +7,9 @@ export interface User {
 export interface RabbitHole {
   id: string;
   name: string;
+  summary?: string;
   findings?: Finding[];
+  userName: string;
   userId: string;
 }
 
@@ -16,5 +18,6 @@ export interface Finding {
   rabbitHoleId: string;
   description: string;
   url?: string;
+  userName: string;
   userId: string;
 }

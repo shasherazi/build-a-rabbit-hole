@@ -1,14 +1,15 @@
-import { RabbitHole } from "@/types";
+import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
-import data from "../../../../data/rabbitholes.json";
+
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const rabbitHoles: RabbitHole[] = JSON.parse(JSON.stringify(data));
-  const rabbitHole = rabbitHoles.find((rh) => rh.id === id);
+  const supabase = await createClient();
+  const { data: rabbitHole, error } = await supabase.from("rabbitHoles").select("*").eq("id", id).single();
 
-  if (!rabbitHole) {
-    return NextResponse.json({ error: "Rabbit hole not found" }, { status: 404 });
+  if (error) {
+    return NextResponse.json({ error }, { status: 500 });
   }
+
   return NextResponse.json(rabbitHole);
 }

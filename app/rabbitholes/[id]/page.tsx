@@ -16,7 +16,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { User, Finding } from "@/types";
+import { User, Finding, type RabbitHole } from "@/types";
+import { Copy } from "lucide-react";
 
 export default function RabbitHole() {
   const params = useParams<{ id: string }>();
@@ -25,9 +26,12 @@ export default function RabbitHole() {
   const supabase = createClient();
 
   const [user, setUser] = useState<User | null>(null);
-  const [rabbitHoleName, setRabbitHoleName] = useState<string | null>(null);
+  const [rabbitHole, setRabbitHole] = useState<RabbitHole>();
   const [findings, setFindings] = useState<Finding[]>([]);
   const [loading, setLoading] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -54,8 +58,10 @@ export default function RabbitHole() {
     async function getRabbitHole() {
       const response = await fetch(`/api/rabbitholes/${id}`);
       const data = await response.json();
-      console.log("Rabbit Hole Data", data);
-      setRabbitHoleName(data.name);
+      setRabbitHole(data);
+      if (data.summary) {
+        setAiSummary(data.summary);
+      }
     }
 
     async function getFindings() {
@@ -85,6 +91,7 @@ export default function RabbitHole() {
     setLoading(true);
     const body = {
       ...values,
+      userName: user?.name,
       userId: user?.id,
     };
 
@@ -96,70 +103,126 @@ export default function RabbitHole() {
       },
     });
 
-    // Refresh findings after submission
-    const response = await fetch(`/api/rabbitholes/${id}/findings`);
-    const data = await response.json();
-    setFindings(data);
-
     setLoading(false);
     form.reset();
   }
 
+  const handleGenerateSummary = async () => {
+    setSummaryLoading(true);
+    try {
+      const bodyfind = findings.map(
+        ({ rabbitHoleId, id, userId, ...rest }) => ({
+          ...rest,
+        }),
+      );
+
+      // Remove id from rabbitHole object
+      const { id, userId, ...rabbitHoleWithoutId } = rabbitHole;
+      rabbitHoleWithoutId.findings = bodyfind;
+      console.log(rabbitHoleWithoutId);
+
+      // Get summary from Gemini
+      const response = await fetch("/api/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(rabbitHoleWithoutId),
+      });
+
+      const data = await response.json();
+
+      // Save summary to file
+      await fetch("/api/rabbitholes", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id,
+          summary: data.summary,
+        }),
+      });
+
+      setAiSummary(data.summary);
+    } catch (error) {
+      console.error("Error generating summary:", error);
+      setAiSummary("Failed to generate summary. Please try again.");
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
+  const handleCopyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(aiSummary);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold text-center">
-        {rabbitHoleName || "Loading..."}
+        {rabbitHole?.name || "Loading..."}
       </h1>
 
       {/* Add Finding Form */}
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle className="text-lg">Add Your Finding</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Finding</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Octopuses have three hearts and blue blood"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Source</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="https://www.wikipedia.org/wiki/Octopus"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? "Submitting..." : "Submit"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+      {!aiSummary && (
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle className="text-lg">Add Your Finding</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Finding</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Octopuses have three hearts and blue blood"
+                          autoComplete="off"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Source</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://www.wikipedia.org/wiki/Octopus"
+                          autoComplete="off"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" disabled={loading} className="w-full">
+                  {loading ? "Submitting..." : "Submit"}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Existing Findings */}
       {findings.length > 0 ? (
@@ -171,7 +234,7 @@ export default function RabbitHole() {
             <ul className="space-y-4">
               {findings.map((finding) => (
                 <li key={finding.id} className="p-4 border rounded-lg">
-                  <p className="font-medium">{finding.description}</p>
+                  <p className="font-medium mb-2">{finding.description}</p>
                   {finding.url && (
                     <p className="cursor-pointer hover:underline text-sm">
                       {finding.url}
@@ -184,6 +247,37 @@ export default function RabbitHole() {
         </Card>
       ) : (
         <p className="text-center text-gray-500">No findings yet.</p>
+      )}
+
+      {/* AI Summary Section */}
+      {aiSummary ? (
+        <Card className="shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg">AI Summary</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2"
+              onClick={handleCopyToClipboard}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              {copySuccess ? "Copied!" : "Copy"}
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-wrap">{aiSummary}</p>
+          </CardContent>
+        </Card>
+      ) : (
+        !rabbitHole?.summary && (
+          <Button
+            className="w-full mt-4"
+            onClick={handleGenerateSummary}
+            disabled={summaryLoading}
+          >
+            {summaryLoading ? "Generating Summary..." : "Generate AI Summary"}
+          </Button>
+        )
       )}
     </div>
   );

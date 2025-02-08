@@ -1,38 +1,35 @@
 import { NextResponse } from "next/server";
-import data from "../../../../../data/rabbitholes.json";
-import fs from "fs";
-import { v4 as uuidv4 } from "uuid";
-import { Finding, RabbitHole } from "@/types";
+import { createClient } from "@/utils/supabase/server";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const rabbitHoles: RabbitHole[] = JSON.parse(JSON.stringify(data));
-  const rabbitHole = rabbitHoles.find((rh) => rh.id === id);
+  const supabase = await createClient();
+  const { data: findings, error } = await supabase.from("findings").select("*").eq("rabbitHole_id", id);
 
-  if (!rabbitHole) {
-    return NextResponse.json({ error: "Rabbit hole not found" }, { status: 404 });
+  if (error) {
+    return NextResponse.json({ error }, { status: 500 });
   }
-  return NextResponse.json(rabbitHole.findings || []);
+
+  return NextResponse.json(findings);
 }
 
 export async function POST(req: Request,
   { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const supabase = await createClient();
   const body = await req.json();
-  console.log("POST /api/rabbitholes/:id/findings", id, body);
-  const findingId = uuidv4();
-  const rabbitHoles: RabbitHole[] = JSON.parse(JSON.stringify(data));
 
-  const rabbitHole = rabbitHoles.find((rh) => rh.id === id);
-  if (!rabbitHole) {
-    return NextResponse.json({ error: "Rabbit hole not found" }, { status: 404 });
+  const { data: findings, error } = await supabase.from("findings").insert({
+    description: body.description,
+    url: body.url,
+    rabbitHole_id: id,
+    user_name: body.userName,
+    user_id: body.userId,
+  }).single();
+
+  if (error) {
+    return NextResponse.json({ error }, { status: 500 });
   }
 
-  const finding: Finding = { id: findingId, rabbitHoleId: id, ...body };
-  rabbitHole.findings = rabbitHole.findings || [];
-  rabbitHole.findings.push(finding);
-
-  fs.writeFileSync("data/rabbitholes.json", JSON.stringify(rabbitHoles, null, 2));
-
-  return NextResponse.json(finding, { status: 201 });
+  return NextResponse.json(findings, { status: 201 });
 }
