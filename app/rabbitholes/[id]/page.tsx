@@ -111,14 +111,23 @@ export default function RabbitHole() {
     setSummaryLoading(true);
     try {
       const bodyfind = findings.map(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ({ rabbitHoleId, id, userId, ...rest }) => ({
           ...rest,
         }),
       );
 
-      // Remove id from rabbitHole object
+      if (!rabbitHole) {
+        console.error("Rabbit hole not found");
+        setAiSummary(
+          "Rabbit hole not found. Error generating summary. Please try again.",
+        );
+        return;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, userId, ...rabbitHoleWithoutId } = rabbitHole;
-      rabbitHoleWithoutId.findings = bodyfind;
+      rabbitHoleWithoutId.findings = bodyfind as Finding[];
       console.log(rabbitHoleWithoutId);
 
       // Get summary from Gemini
@@ -155,7 +164,7 @@ export default function RabbitHole() {
 
   const handleCopyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(aiSummary);
+      await navigator.clipboard.writeText(aiSummary || "");
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
