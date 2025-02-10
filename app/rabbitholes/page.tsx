@@ -2,21 +2,43 @@
 import { RabbitHole } from "@/types";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getRabbitHolesOfUser } from "../actions";
+import { createClient } from "@/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 export default function RabbitHoles() {
   const [rabbitHoles, setRabbitHoles] = useState<RabbitHole[] | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const supabase = createClient();
 
   useEffect(() => {
     async function fetchRabbitHoles() {
-      const res = await fetch("/api/rabbitholes");
-      const rabbitHoles: RabbitHole[] = await res.json();
+      if (!user) return; // Early return if no user
+
+      //const res = await fetch("/api/rabbitholes");
+      //const rabbitHoles: RabbitHole[] = await res.json();
+      const rabbitHoles: RabbitHole[] = await getRabbitHolesOfUser(user?.id);
       setRabbitHoles(rabbitHoles);
     }
-
     fetchRabbitHoles();
-  }, []);
+  }, [user]); // Only run when user changes
+
+  useEffect(() => {
+    async function fetchUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    }
+    fetchUser();
+  }, []); // Empty dependency array - run only once on mount
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -35,7 +57,10 @@ export default function RabbitHoles() {
             <Link key={rabbitHole.id} href={`/rabbitholes/${rabbitHole.id}`}>
               <Card className="hover:shadow-lg transition-shadow mb-2">
                 <CardHeader>
-                  <CardTitle className="text-lg font-semibold">{rabbitHole.name}</CardTitle>
+                  <CardTitle className="text-lg font-semibold">
+                    {rabbitHole.name}
+                  </CardTitle>
+                  <CardDescription>by {rabbitHole.user_name}</CardDescription>
                 </CardHeader>
               </Card>
             </Link>

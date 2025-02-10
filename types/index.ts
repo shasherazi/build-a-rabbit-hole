@@ -9,7 +9,7 @@ export interface RabbitHole {
   name: string;
   summary?: string;
   findings?: Finding[];
-  userName: string;
+  user_name: string;
   userId: string;
 }
 
