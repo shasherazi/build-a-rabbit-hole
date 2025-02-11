@@ -115,6 +115,7 @@ export default function RabbitHole() {
     setSummaryLoading(true);
     try {
       const bodyfind = findings.map(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ({ rabbitHoleId, id, userId, ...rest }) => ({
           ...rest,
         }),
@@ -128,6 +129,7 @@ export default function RabbitHole() {
         return;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, userId, ...rabbitHoleWithoutId } = rabbitHole;
       rabbitHoleWithoutId.findings = bodyfind as Finding[];
 
