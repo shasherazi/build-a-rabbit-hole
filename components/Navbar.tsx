@@ -76,39 +76,56 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            {isLoggedIn ? (
+            <Link
+              href="/about"
+              className="ml-4 text-gray-700 hover:text-gray-900"
+            >
+              About
+            </Link>
+            {isLoggedIn && (
               <>
-                <Link href="/rabbitholes" className="ml-4">
-                  <Button>See your rabbitholes</Button>
+                <Link
+                  href="/rabbitholes"
+                  className="ml-4 text-gray-700 hover:text-gray-900"
+                >
+                  See your rabbitholes
                 </Link>
-                <div className="flex items-center">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="relative h-8 rounded-full"
-                      >
-                        <Image
-                          src={userProfilePicture}
-                          alt="User profile"
-                          width={32}
-                          height={32}
-                          className="h-8 w-8 rounded-full"
-                          priority
-                        />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => signout()}>
-                        Logout
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                <Link href="/create" className="ml-4">
+                  <Button variant="default">Create Rabbithole</Button>
+                </Link>
               </>
+            )}
+            {isLoggedIn ? (
+              <div className="flex items-center ml-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative h-8 rounded-full"
+                    >
+                      <Image
+                        src={userProfilePicture}
+                        alt="User profile"
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 rounded-full"
+                        priority
+                      />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => signout()}>
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
-              <Link href="/login" className="ml-4">
-                <Button>Login</Button>
+              <Link
+                href="/login"
+                className="ml-4 text-gray-700 hover:text-gray-900"
+              >
+                Login
               </Link>
             )}
           </div>
@@ -132,35 +149,49 @@ const Navbar = () => {
       {isOpen && (
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
-            {isLoggedIn ? (
+            <Link
+              href="/about"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+            >
+              About
+            </Link>
+            {isLoggedIn && (
               <>
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="w-full">
-                    <div className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-                      <Image
-                        src={userProfilePicture}
-                        alt="User profile"
-                        width={32}
-                        height={32}
-                        className="h-8 w-8 rounded-full mr-2"
-                        priority
-                      />
-                      <span>User Profile</span>
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => signout()}>
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
                 <Link
                   href="/rabbitholes"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                 >
                   See your rabbitholes
                 </Link>
+                <Link
+                  href="/create"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                >
+                  Create Rabbithole
+                </Link>
               </>
+            )}
+            {isLoggedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="w-full">
+                  <div className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+                    <Image
+                      src={userProfilePicture}
+                      alt="User profile"
+                      width={32}
+                      height={32}
+                      className="h-8 w-8 rounded-full mr-2"
+                      priority
+                    />
+                    <span>User Profile</span>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => signout()}>
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Link
                 href="/login"
