@@ -90,7 +90,7 @@ const Navbar = () => {
                 >
                   See your rabbitholes
                 </Link>
-                <Link href="/create" className="ml-4">
+                <Link href="/new" className="ml-4">
                   <Button variant="default">Create Rabbithole</Button>
                 </Link>
               </>
@@ -164,7 +164,7 @@ const Navbar = () => {
                   See your rabbitholes
                 </Link>
                 <Link
-                  href="/create"
+                  href="/new"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                 >
                   Create Rabbithole

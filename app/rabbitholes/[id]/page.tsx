@@ -96,13 +96,16 @@ export default function RabbitHole() {
       userId: user?.id,
     };
 
-    await fetch(`/api/rabbitholes/${id}/findings`, {
+    const response = await fetch(`/api/rabbitholes/${id}/findings`, {
       method: "POST",
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
       },
     });
+
+    const newFinding = await response.json();
+    setFindings((prevFindings) => [...prevFindings, newFinding]);
 
     setLoading(false);
     form.reset();
@@ -112,7 +115,6 @@ export default function RabbitHole() {
     setSummaryLoading(true);
     try {
       const bodyfind = findings.map(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ({ rabbitHoleId, id, userId, ...rest }) => ({
           ...rest,
         }),
@@ -126,12 +128,9 @@ export default function RabbitHole() {
         return;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, userId, ...rabbitHoleWithoutId } = rabbitHole;
       rabbitHoleWithoutId.findings = bodyfind as Finding[];
-      console.log(rabbitHoleWithoutId);
 
-      // Get summary from Gemini
       const response = await fetch("/api/gemini", {
         method: "POST",
         headers: {
@@ -142,7 +141,6 @@ export default function RabbitHole() {
 
       const data = await response.json();
 
-      // Save summary to file
       await fetch("/api/rabbitholes", {
         method: "PATCH",
         headers: {
@@ -200,7 +198,6 @@ export default function RabbitHole() {
         </Button>
       </div>
 
-      {/* Add Finding Form */}
       {!aiSummary && (
         <Card className="shadow-md">
           <CardHeader>
@@ -255,7 +252,6 @@ export default function RabbitHole() {
         </Card>
       )}
 
-      {/* Existing Findings */}
       {findings.length > 0 ? (
         <Card className="shadow-md">
           <CardHeader>
@@ -265,12 +261,19 @@ export default function RabbitHole() {
             <ul className="space-y-4">
               {findings.map((finding) => (
                 <li key={finding.id} className="p-4 border rounded-lg">
-                  <p className="font-medium mb-2">{finding.description}</p>
-                  {finding.url && (
-                    <p className="cursor-pointer hover:underline text-sm">
-                      {finding.url}
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p className="font-medium mb-2">{finding.description}</p>
+                      {finding.url && (
+                        <p className="cursor-pointer hover:underline text-sm">
+                          {finding.url}
+                        </p>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500 ml-4">
+                      Submitted by {finding.userName || "Anonymous"}
                     </p>
-                  )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -280,7 +283,6 @@ export default function RabbitHole() {
         <p className="text-center text-gray-500">No findings yet.</p>
       )}
 
-      {/* AI Summary Section */}
       {aiSummary ? (
         <Card className="shadow-md">
           <CardHeader className="flex flex-row items-center justify-between">
