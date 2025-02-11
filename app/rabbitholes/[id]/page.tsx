@@ -263,19 +263,15 @@ export default function RabbitHole() {
             <ul className="space-y-4">
               {findings.map((finding) => (
                 <li key={finding.id} className="p-4 border rounded-lg">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p className="font-medium mb-2">{finding.description}</p>
-                      {finding.url && (
-                        <p className="cursor-pointer hover:underline text-sm">
-                          {finding.url}
-                        </p>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500 ml-4">
-                      by {finding.user_name || "Anonymous"}
+                  <p className="font-medium mb-2">{finding.description}</p>
+                  {finding.url && (
+                    <p className="cursor-pointer hover:underline text-sm mb-2">
+                      {finding.url}
                     </p>
-                  </div>
+                  )}
+                  <p className="text-sm text-gray-500">
+                    by {finding.user_name || "Anonymous"}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -284,7 +280,6 @@ export default function RabbitHole() {
       ) : (
         <p className="text-center text-gray-500">No findings yet.</p>
       )}
-
       {aiSummary ? (
         <Card className="shadow-md">
           <CardHeader className="flex flex-row items-center justify-between">
