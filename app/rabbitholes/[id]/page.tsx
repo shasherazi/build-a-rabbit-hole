@@ -32,6 +32,7 @@ export default function RabbitHole() {
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [copyLinkSuccess, setCopyLinkSuccess] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -172,11 +173,32 @@ export default function RabbitHole() {
     }
   };
 
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopyLinkSuccess(true);
+      setTimeout(() => setCopyLinkSuccess(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy link: ", err);
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-center">
-        {rabbitHole?.name || "Loading..."}
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">
+          {rabbitHole?.name || "Loading..."}
+        </h1>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2"
+          onClick={handleCopyLink}
+        >
+          <Copy className="h-4 w-4 mr-2" />
+          {copyLinkSuccess ? "Copied!" : "Copy Link"}
+        </Button>
+      </div>
 
       {/* Add Finding Form */}
       {!aiSummary && (
