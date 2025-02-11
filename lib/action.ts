@@ -28,8 +28,6 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient()
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
   const name = formData.get('name') as string
   const data = {
     email: formData.get('email') as string,
@@ -43,8 +41,9 @@ export async function signup(formData: FormData) {
     redirect('/error')
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/')
+  // After successful signup, redirect to confirmation page
+  // as the user needs to verify their email
+  redirect('/confirm')
 }
 
 export async function signInWithGoogle() {
