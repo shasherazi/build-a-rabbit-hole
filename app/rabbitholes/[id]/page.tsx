@@ -273,7 +273,7 @@ export default function RabbitHole() {
                       )}
                     </div>
                     <p className="text-sm text-gray-500 ml-4">
-                      Submitted by {finding.userName || "Anonymous"}
+                      by {finding.user_name || "Anonymous"}
                     </p>
                   </div>
                 </li>

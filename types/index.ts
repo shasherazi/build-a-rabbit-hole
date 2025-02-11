@@ -18,6 +18,6 @@ export interface Finding {
   rabbitHoleId: string;
   description: string;
   url?: string;
-  userName: string;
+  user_name: string;
   userId: string;
 }
