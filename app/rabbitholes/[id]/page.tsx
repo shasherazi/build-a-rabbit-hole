@@ -96,16 +96,13 @@ export default function RabbitHole() {
       userId: user?.id,
     };
 
-    const response = await fetch(`/api/rabbitholes/${id}/findings`, {
+    await fetch(`/api/rabbitholes/${id}/findings`, {
       method: "POST",
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
       },
     });
-
-    const newFinding = await response.json();
-    setFindings((prevFindings) => [...prevFindings, newFinding]);
 
     setLoading(false);
     form.reset();
